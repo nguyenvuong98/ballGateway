@@ -9,6 +9,7 @@ const usConfig = new Schema({
     name: String,
     title: String,
     note: String,
+    secret_key: String,
     config: Object,
     members: Array,
     delFlag: Number
