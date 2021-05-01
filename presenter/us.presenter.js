@@ -7,6 +7,7 @@ class UsPresenter {
         }
 
         let usConfig = await UsConfigRepository.findOne({us_id: us_id});
+        delete usConfig.secret_key;
 
         if (usConfig.members && usConfig.members.length) {
             usConfig.members = _.orderBy(usConfig.members, ['stt'], ['asc'])
@@ -39,6 +40,8 @@ class UsPresenter {
         let note = body.note;
         let title = body.title;
         let members = body.members;
+        let secret_key = body.secret_key;
+
         members = typeof members == "string" ? JSON.parse(members) : members;
         if (!us_id) {
             throw new Error('error us not found');
@@ -48,6 +51,10 @@ class UsPresenter {
 
         if (!usConfig) {
             throw new Error('Us not found');
+        }
+
+        if (!secret_key || secret_key !== usConfig.secret_key) {
+            throw new Error('Permission denied');
         }
         
         usConfig.note = note;
