@@ -23,8 +23,9 @@ class UsPresenter {
         let name = body.name;
         let note = body.note;
         let title = body.title;
+        let secret_key = body.secret_key;
 
-        if (!name) {
+        if (!name || !secret_key) {
             throw new Error('Missing infor');
         }
 
