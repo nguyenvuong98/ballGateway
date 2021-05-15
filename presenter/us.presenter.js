@@ -10,7 +10,7 @@ class UsPresenter {
         delete usConfig.secret_key;
 
         if (usConfig.members && usConfig.members.length) {
-            usConfig.members = _.orderBy(usConfig.members, ['stt'], ['asc'])
+            usConfig.members = _.orderBy(usConfig.members, ['weekScore'], ['desc'])
         }
 
         if (!usConfig) {
