@@ -3,6 +3,20 @@ const app = express();
 const port = process.env.PORT || 5000;
 const UsPresenter = require('./presenter/us.presenter');
 let bodyParser = require('body-parser')
+
+const server = require('http').createServer(app);
+const io = require('socket.io', { rememberTransport: false, transports: ['WebSocket', 'Flash Socket', 'AJAX long-polling'] })(server, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"],
+      allowedHeaders: ["my-custom-header"],
+      credentials: true
+    }
+  });
+
+server.listen(port, () => {
+    console.log(`Server listen on ${port} ...`);
+});
 app.use(bodyParser.urlencoded({ extended: false }))
  
 // parse application/json
@@ -24,10 +38,6 @@ app.use(function (req, res, next) {
 
     // Pass to next layer of middleware
     next();
-});
-
-app.listen(port, () => {
-    console.log(`Server listen on ${port} ...`);
 });
 
 app.get('/us/:id', async (req, res) => {
@@ -60,4 +70,8 @@ app.post('/update', async (req, res) => {
     } catch (e) {
         return res.status(200).json({status: false, message: e.message});
     }
+});
+
+io.on('connection', (socket) => {
+    console.log('id ',socket.id);
 });
