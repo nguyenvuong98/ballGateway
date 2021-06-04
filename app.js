@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const port = process.env.PORT || 5000;
 const UsPresenter = require('./presenter/us.presenter');
+const UserPresenter = require('./presenter/user.presenter');
 let bodyParser = require('body-parser')
 
 const server = require('http').createServer(app);
@@ -71,7 +72,31 @@ app.post('/update', async (req, res) => {
         return res.status(200).json({status: false, message: e.message});
     }
 });
+app.post('/register', async (req, res) => {
+    try {
+        let process = await UserPresenter.register(req.body);
+        return res.status(200).json({status: true, message: 'success', data: process});
+    } catch (e) {
+        return res.status(200).json({status: false, message: e.message});
+    }
+});
+
+app.post('/login', async (req, res) => {
+    try {
+        let process = await UserPresenter.login(req.body);
+        return res.status(200).json({status: true, message: 'success', data: process});
+    } catch (e) {
+        return res.status(200).json({status: false, message: e.message});
+    }
+});
 
 io.on('connection', (socket) => {
     console.log('id ',socket.id);
+    socket.on('send-message', (data) => {
+        socket.broadcast.emit('recive-message', JSON.stringify(data));
+
+    });
+    socket.on('disconnected', () => {
+        socket.emit('disconnected', {name: socket.name});
+    });
 });
