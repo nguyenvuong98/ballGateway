@@ -10,6 +10,10 @@ class UserRepository {
     static async findOne(query = {}, projection = {}) {
         return await models.user.findOne(query, projection);
     }
+
+    static async find(query = {}, projection = {}) {
+        return await models.user.find(query, projection);
+    }
 }
 
 module.exports = UserRepository;

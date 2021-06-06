@@ -3,6 +3,8 @@ const app = express();
 const port = process.env.PORT || 5000;
 const UsPresenter = require('./presenter/us.presenter');
 const UserPresenter = require('./presenter/user.presenter');
+const MessageChatPresenter = require('./presenter/message_chat.presenter');
+const _ = require('lodash');
 let bodyParser = require('body-parser')
 
 const server = require('http').createServer(app);
@@ -90,13 +92,49 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.get('/messages', async (req, res) => {
+    try {
+        let message = await MessageChatPresenter.getMessage();
+        return res.status(200).json({status: true, message: 'success', data: message});
+    } catch (e) {
+        return res.status(200).json({status: false, message: e.message});
+    }
+});
+
 io.on('connection', (socket) => {
-    console.log('id ',socket.id);
-    socket.on('send-message', (data) => {
-        socket.broadcast.emit('recive-message', JSON.stringify(data));
+    socket.on('online', async (data) => {
+        socket.name = data.username;
+        let users = await UserPresenter.get();
+
+        users.forEach(item => {
+            if (item.name != data.username) return;
+            
+            item.is_online = true;
+            item.save();
+        });
+        users = _.orderBy(users, ['is_online'], 'desc');
+        // io.sockets.emit('users', {users});
+        // io.sockets.emit('notifi-online', {name: data.username});
+        io.sockets.emit('users', {users});
+        io.sockets.emit('notifi-online', {name: data.username});
+    })
+    socket.on('send-message', async (data) => {
+        await MessageChatPresenter.create(data);
+        //io.sockets.emit('recive-message', data);
+        io.sockets.emit('recive-message', data);;
 
     });
-    socket.on('disconnected', () => {
-        socket.emit('disconnected', {name: socket.name});
+    socket.on('disconnect', async (data) => {
+        let users = await UserPresenter.get();
+
+        users.forEach(item => {
+            if (item.name != socket.name) return;
+            
+            item.is_online = false;
+            item.save();
+        });
+        users = _.orderBy(users, ['is_online'], 'desc');
+        io.sockets.emit('users', {users});
+        io.sockets.emit('notifi-offline', {name: socket.name});
     });
 });
